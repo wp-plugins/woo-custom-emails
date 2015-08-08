@@ -2,9 +2,9 @@
 
 /**
  * Plugin Name: Woo Custom Emails
- * Plugin URI: http://www.test.com/
+ * Plugin URI: https://github.com/mehulkaklotar/woo-custom-emails
  * Description: A woocommerce add on to support customize emails
- * Version: 1.0
+ * Version: 1.1
  * Author: Mehul Kaklotar
  * Author URI: http://mehulkaklotar.branded.me
  * Requires at least: 4.1
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-if( ! class_exists( 'Woo_Custom_Emails' ) ) {
+if ( ! class_exists( 'Woo_Custom_Emails' ) ) {
 
 	/**
 	 * Main Woo Custom Emails Class
@@ -33,7 +33,7 @@ if( ! class_exists( 'Woo_Custom_Emails' ) ) {
 		/**
 		 * @var string
 		 */
-		public $version = '1.0';
+		public $version = '1.1';
 		/**
 		 * @var Woo_Custom_Emails The single instance of the class
 		 * @since 2.1
@@ -47,7 +47,7 @@ if( ! class_exists( 'Woo_Custom_Emails' ) ) {
 		 *
 		 * @since 0.1
 		 * @static
-		 * @see WCEmails()
+		 * @see woo_custom_emails()
 		 * @return Woo_Custom_Emails - Main instance
 		 */
 		public static function instance() {
@@ -146,12 +146,12 @@ if( ! class_exists( 'Woo_Custom_Emails' ) ) {
 }
 
 /**
- * Returns the main instance of WCEmails to prevent the need to use globals.
+ * Returns the main instance of woo_custom_emails to prevent the need to use globals.
  *
  * @since  0.1
  * @return Woo_Custom_Emails
  */
-function WCEmails() {
+function woo_custom_emails() {
 	return Woo_Custom_Emails::instance();
 }
-WCEmails();
+woo_custom_emails();
