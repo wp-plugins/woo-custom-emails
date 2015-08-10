@@ -132,7 +132,18 @@ if ( ! class_exists( 'WCEmails_Admin' ) ) {
 								</span>
 						</th>
 						<td>
-							<input name="wcemails_description" id="wcemails_description" required type="text" value="<?php echo isset( $wcemails_detail['description'] ) ? $wcemails_detail['description'] : ''; ?>" placeholder="<?php _e( 'Description', WCEmails_TEXT_DOMAIN ); ?>" />
+							<textarea name="wcemails_description" id="wcemails_description" required placeholder="<?php _e( 'Description', WCEmails_TEXT_DOMAIN ); ?>" ><?php echo isset( $wcemails_detail['description'] ) ? $wcemails_detail['description'] : ''; ?></textarea>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<?php _e( 'Subject', WCEmails_TEXT_DOMAIN ); ?>
+							<span style="display: block; font-size: 12px; font-weight: 300;">
+							<?php _e( '( Email Subject <br/>[Try this placeholders : <i>{site_title}, {order_number}, {order_date}</i>] )' ); ?>
+								</span>
+						</th>
+						<td>
+							<input name="wcemails_subject" id="wcemails_subject" type="text" required value="<?php echo isset( $wcemails_detail['subject'] ) ? $wcemails_detail['subject'] : ''; ?>" placeholder="<?php _e( 'Subject', WCEmails_TEXT_DOMAIN ); ?>" />
 						</td>
 					</tr>
 					<tr>
@@ -146,17 +157,17 @@ if ( ! class_exists( 'WCEmails_Admin' ) ) {
 							<input name="wcemails_heading" id="wcemails_heading" type="text" required value="<?php echo isset( $wcemails_detail['heading'] ) ? $wcemails_detail['heading'] : ''; ?>" placeholder="<?php _e( 'Heading', WCEmails_TEXT_DOMAIN ); ?>" />
 						</td>
 					</tr>
-					<tr>
+					<!--<tr>
 						<th scope="row">
-							<?php _e( 'Hook Or Action Name', WCEmails_TEXT_DOMAIN ); ?>
+							<?php /*_e( 'Hook Or Action Name', WCEmails_TEXT_DOMAIN ); */?>
 							<span style="display: block; font-size: 12px; font-weight: 300;">
-							<?php _e( '( Action or Hook on which the email will fire. )' ); ?>
+							<?php /*_e( '( Action or Hook on which the email will fire. )' ); */?>
 								</span>
 						</th>
 						<td>
-							<input name="wcemails_hook" id="wcemails_hook" type="text" required value="<?php echo isset( $wcemails_detail['hook'] ) ? $wcemails_detail['hook'] : ''; ?>" placeholder="<?php _e( 'Hook Or Action Name', WCEmails_TEXT_DOMAIN ); ?>" />
+							<textarea name="wcemails_hook" id="wcemails_hook" type="text" required value="<?php /*echo isset( $wcemails_detail['hook'] ) ? $wcemails_detail['hook'] : ''; */?>" placeholder="<?php /*_e( 'Hook Or Action Name', WCEmails_TEXT_DOMAIN ); */?>" ></textarea>
 						</td>
-					</tr>
+					</tr>-->
 					<tr>
 						<th scope="row">
 							<?php _e( 'Template', WCEmails_TEXT_DOMAIN ); ?>
@@ -228,8 +239,9 @@ if ( ! class_exists( 'WCEmails_Admin' ) ) {
 				<tr>
 					<th><?php _e( 'Title', WCEmails_TEXT_DOMAIN ); ?></th>
 					<th><?php _e( 'Description', WCEmails_TEXT_DOMAIN ); ?></th>
+					<th><?php _e( 'Subject', WCEmails_TEXT_DOMAIN ); ?></th>
 					<th><?php _e( 'Heading', WCEmails_TEXT_DOMAIN ); ?></th>
-					<th><?php _e( 'Hook', WCEmails_TEXT_DOMAIN ); ?></th>
+					<!--<th><?php /*_e( 'Hook', WCEmails_TEXT_DOMAIN ); */?></th>-->
 					<th><?php _e( 'Order Action', WCEmails_TEXT_DOMAIN ); ?></th>
 					<th><?php _e( 'Enable', WCEmails_TEXT_DOMAIN ); ?></th>
 					<th><?php _e( 'Action', WCEmails_TEXT_DOMAIN ); ?></th>
@@ -242,8 +254,9 @@ if ( ! class_exists( 'WCEmails_Admin' ) ) {
 						<tr>
 							<td><?php echo $details['title']; ?></td>
 							<td><?php echo $details['description']; ?></td>
+							<td><?php echo $details['subject']; ?></td>
 							<td><?php echo $details['heading']; ?></td>
-							<td><?php echo $details['hook']; ?></td>
+							<!--<td><?php /*echo $details['hook']; */?></td>-->
 							<td><?php echo 'on' == $details['order_action'] ? 'Yes' : 'No'; ?></td>
 							<td><?php echo 'on' == $details['enable'] ? 'Yes' : 'No'; ?></td>
 							<td>
@@ -266,6 +279,7 @@ if ( ! class_exists( 'WCEmails_Admin' ) ) {
 
 				$title = filter_input( INPUT_POST, 'wcemails_title',FILTER_SANITIZE_STRING );
 				$description = filter_input( INPUT_POST, 'wcemails_description',FILTER_SANITIZE_STRING );
+				$subject = filter_input( INPUT_POST, 'wcemails_subject',FILTER_SANITIZE_STRING );
 				$heading = filter_input( INPUT_POST, 'wcemails_heading',FILTER_SANITIZE_STRING );
 				$hook = filter_input( INPUT_POST, 'wcemails_hook',FILTER_SANITIZE_STRING );
 				$template = isset( $_POST['wcemails_template'] ) ? $_POST['wcemails_template'] : '';
@@ -279,6 +293,7 @@ if ( ! class_exists( 'WCEmails_Admin' ) ) {
 				$data = array(
 					'title' => $title,
 					'description' => $description,
+					'subject' => $subject,
 					'heading' => $heading,
 					'hook' => $hook,
 					'template' => $template,
@@ -329,6 +344,8 @@ if ( ! class_exists( 'WCEmails_Admin' ) ) {
 
 		function wcemails_custom_woocommerce_emails( $email_classes ) {
 
+			include_once( 'class-wcemails-instance.php' );
+
 			$wcemails_email_details = get_option( 'wcemails_email_details', array() );
 
 			if ( ! empty( $wcemails_email_details ) ) {
@@ -342,172 +359,14 @@ if ( ! class_exists( 'WCEmails_Admin' ) ) {
 						$title          = $details['title'];
 						$id             = $details['id'];
 						$description    = $details['description'];
+						$subject        = $details['subject'];
 						$heading        = $details['heading'];
 						$hook           = $details['hook'];
-						$template       = $details['template'];
+						$template       = html_entity_decode( $details['template'] );
 
-						eval("
-						if ( ! class_exists( 'WCustom_Emails_".$id."_Email' ) ) {
+						$wcemails_instance = new WCEmails_Instance( $id, $title, $description, $subject, $heading, $hook, $template );
 
-							class WCustom_Emails_".$id."_Email extends WC_Email {
-
-								public function __construct() {
-
-									\$this->id          = 'wcustom_emails_".$id."';
-									\$this->title       = __( '".$title."', WCEmails_TEXT_DOMAIN );
-									\$this->description = __( '".$description."', WCEmails_TEXT_DOMAIN );
-
-									\$this->heading = __( '".$heading."', WCEmails_TEXT_DOMAIN );
-									\$this->subject = __( '', WCEmails_TEXT_DOMAIN );
-
-									\$this->custom_template = html_entity_decode( '" . $template . "' );
-
-									// Triggers for this email
-									add_action( '".$hook."', array( \$this, 'trigger' ) );
-
-									// Call parent constructor
-									parent::__construct();
-
-									// Other settings
-									\$this->recipient = \$this->get_option( 'recipient' );
-
-									if ( ! \$this->recipient ) {
-										\$this->recipient = get_option( 'admin_email' );
-									}
-								}
-
-								function trigger( \$order_id ) {
-
-									if ( \$order_id ) {
-										\$this->object 		= wc_get_order( \$order_id );
-
-										\$this->find['order-date']      = '{order_date}';
-										\$this->find['order-number']    = '{order_number}';
-
-										\$this->replace['order-date']   = date_i18n( wc_date_format(), strtotime( \$this->object->order_date ) );
-										\$this->replace['order-number'] = \$this->object->get_order_number();
-									}
-
-									if ( ! \$this->is_enabled() || ! \$this->get_recipient() ) {
-										return;
-									}
-
-									\$this->convert_template();
-
-									\$this->send( \$this->get_recipient(), \$this->get_subject(), \$this->get_content(), \$this->get_headers(), \$this->get_attachments() );
-								}
-
-								function get_content_html() {
-									ob_start();
-									echo str_replace( \$this->find, \$this->replace, \$this->custom_template );
-									return ob_get_clean();
-								}
-
-								function get_content_plain() {
-									ob_start();
-									echo str_replace( \$this->find, \$this->replace, \$this->custom_template );
-									return ob_get_clean();
-								}
-
-								function init_form_fields() {
-									\$this->form_fields = array(
-										'enabled' => array(
-											'title' 		=> __( 'Enable/Disable', 'woocommerce' ),
-											'type' 			=> 'checkbox',
-											'label' 		=> __( 'Enable this email notification', 'woocommerce' ),
-											'default' 		=> 'yes'
-										),
-										'recipient' => array(
-											'title' 		=> __( 'Recipient(s)', 'woocommerce' ),
-											'type' 			=> 'text',
-											'description' 	=> sprintf( __( 'Enter recipients (comma separated) for this email. Defaults to <code>%s</code>.', 'woocommerce' ), esc_attr( get_option('admin_email') ) ),
-											'placeholder' 	=> '',
-											'default' 		=> ''
-										),
-										'subject' => array(
-											'title' 		=> __( 'Subject', 'woocommerce' ),
-											'type' 			=> 'text',
-											'description' 	=> sprintf( __( 'This controls the email subject line. Leave blank to use the default subject: <code>%s</code>.', 'woocommerce' ), \$this->subject ),
-											'placeholder' 	=> '',
-											'default' 		=> ''
-										),
-										'heading' => array(
-											'title' 		=> __( 'Email Heading', 'woocommerce' ),
-											'type' 			=> 'text',
-											'description' 	=> sprintf( __( 'This controls the main heading contained within the email notification. Leave blank to use the default heading: <code>%s</code>.', 'woocommerce' ), \$this->heading ),
-											'placeholder' 	=> '',
-											'default' 		=> ''
-										),
-										'email_type' => array(
-											'title' 		=> __( 'Email type', 'woocommerce' ),
-											'type' 			=> 'select',
-											'description' 	=> __( 'Choose which format of email to send.', 'woocommerce' ),
-											'default' 		=> 'html',
-											'class'			=> 'email_type wc-enhanced-select',
-											'options'		=> \$this->get_email_type_options()
-										)
-									);
-								}
-
-								function convert_template() {
-
-									\$this->find[]    = '{woocommerce_email_order_meta}';
-									\$this->replace[] = \$this->woocommerce_email_order_meta();
-
-									\$this->find[]    = '{order_billing_name}';
-									\$this->replace[] = \$this->object->billing_first_name . ' ' . \$this->object->billing_last_name;
-
-									\$this->find[]    = '{email_order_items_table}';
-									\$this->replace[] = \$this->object->email_order_items_table();
-
-									\$this->find[]    = '{email_order_total_footer}';
-									\$this->replace[] = \$this->email_order_total_footer();
-
-									\$this->find[]    = '{order_billing_email}';
-									\$this->replace[] = \$this->object->billing_email;
-
-									\$this->find[]    = '{order_billing_phone}';
-									\$this->replace[] = \$this->object->billing_phone;
-
-									\$this->find[]    = '{email_addresses}';
-									\$this->replace[] = \$this->get_email_addresses();
-
-								}
-
-								function woocommerce_email_order_meta() {
-									ob_start();
-									do_action( 'woocommerce_email_order_meta', \$this->object, true );
-									return ob_get_clean();
-								}
-
-								function email_order_total_footer() {
-									ob_start();
-									if ( \$totals = \$this->object->get_order_item_totals() ) {
-										\$i = 0;
-										foreach ( \$totals as \$total ) {
-											\$i++;
-											?><tr>
-												<th scope='row' colspan='2' style='text-align:left; border: 1px solid #eee; <?php if ( \$i == 1 ) echo 'border-top-width: 4px;'; ?>'><?php echo \$total['label']; ?></th>
-												<td style='text-align:left; border: 1px solid #eee; <?php if ( \$i == 1 ) echo 'border-top-width: 4px;'; ?>'><?php echo \$total['value']; ?></td>
-											</tr><?php
-										}
-									}
-									return ob_get_clean();
-								}
-
-								function get_email_addresses() {
-									ob_start();
-									wc_get_template( 'emails/email-addresses.php', array( 'order' => \$this->object ) );
-									return ob_get_clean();
-								}
-
-							}
-						}
-						");
-
-						$email_class = 'WCustom_Emails_'.$id.'_Email';
-
-						$email_classes[ 'WCustom_Emails_'.$id.'_Email' ] = new $email_class();
+						$email_classes[ 'WCustom_Emails_'.$id.'_Email' ] = $wcemails_instance;
 
 					}
 				}
@@ -530,10 +389,9 @@ if ( ! class_exists( 'WCEmails_Admin' ) ) {
 
 					if ( 'on' == $enable && 'on' == $order_action ) {
 
-						$title          = $details['title'];
-						$title = str_replace( ' ', '_', $title );
+						$id             = $details['id'];
 
-						array_push( $emails, 'wcustom_emails_'.$title );
+						array_push( $emails, $id );
 
 					}
 				}
