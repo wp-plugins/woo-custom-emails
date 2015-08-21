@@ -60,11 +60,13 @@ if ( ! class_exists( 'WCEmails_Admin' ) ) {
 
 		function wcemails_settings_menu() {
 
-			add_options_page( __( 'WC Emails', WCEmails_TEXT_DOMAIN ), 'WC Emails', 'manage_options', 'wcemails-settings', array( $this, 'wcemails_settings_callback' ) );
+			add_options_page( __( 'Woo Custom Emails', WCEmails_TEXT_DOMAIN ), 'Woo Custom Emails', 'manage_options', 'wcemails-settings', array( $this, 'wcemails_settings_callback' ) );
 
 		}
 
 		function wcemails_settings_callback() {
+
+			$this->wcemails_woocommerce_check();
 
 			?>
 			<div class="wrap">
@@ -111,6 +113,7 @@ if ( ! class_exists( 'WCEmails_Admin' ) ) {
 					foreach ( $wcemails_email_details as $key => $details ) {
 						if ( $_REQUEST['wcemails_edit'] == $key ) {
 							$wcemails_detail = $details;
+							$wcemails_detail['template'] = stripslashes( $wcemails_detail['template'] );
 						}
 					}
 				}
@@ -173,7 +176,18 @@ if ( ! class_exists( 'WCEmails_Admin' ) ) {
 								</span>
 						</th>
 						<td>
-							<input name="wcemails_recipients" id="wcemails_recipients" type="text" required value="<?php echo isset( $wcemails_detail['recipients'] ) ? $wcemails_detail['recipients'] : ''; ?>" placeholder="<?php _e( 'Recipients', WCEmails_TEXT_DOMAIN ); ?>" />
+							<input name="wcemails_recipients" id="wcemails_recipients" type="text" value="<?php echo isset( $wcemails_detail['recipients'] ) ? $wcemails_detail['recipients'] : ''; ?>" placeholder="<?php _e( 'Recipients', WCEmails_TEXT_DOMAIN ); ?>" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<?php _e( 'Send Only To Customer?', WCEmails_TEXT_DOMAIN ); ?>
+							<span style="display: block; font-size: 12px; font-weight: 300;">
+							<?php _e( '( Enable this to send this email only to customer. If this field is enabled then `Recipients` field will not be effective. )' ); ?>
+								</span>
+						</th>
+						<td>
+							<input name="wcemails_send_customer" id="wcemails_send_customer" type="checkbox" <?php echo ( isset( $wcemails_detail['send_customer'] ) && 'on' == $wcemails_detail['send_customer'] ) ? 'checked="checked"' : ''; ?> />
 						</td>
 					</tr>
 					<tr>
@@ -335,32 +349,35 @@ if ( ! class_exists( 'WCEmails_Admin' ) ) {
 
 			if ( isset( $_POST['wcemails_submit'] ) ) {
 
-				$title        = filter_input( INPUT_POST, 'wcemails_title', FILTER_SANITIZE_STRING );
-				$description  = filter_input( INPUT_POST, 'wcemails_description', FILTER_SANITIZE_STRING );
-				$subject      = filter_input( INPUT_POST, 'wcemails_subject', FILTER_SANITIZE_STRING );
-				$recipients   = filter_input( INPUT_POST, 'wcemails_recipients', FILTER_SANITIZE_STRING );
-				$heading      = filter_input( INPUT_POST, 'wcemails_heading', FILTER_SANITIZE_STRING );
-				$from_status  = isset( $_POST['wcemails_from_status'] ) ? $_POST['wcemails_from_status'] : '';
-				$to_status    = isset( $_POST['wcemails_to_status'] ) ? $_POST['wcemails_to_status'] : '';
-				$template     = isset( $_POST['wcemails_template'] ) ? $_POST['wcemails_template'] : '';
-				$order_action = filter_input( INPUT_POST, 'wcemails_order_action', FILTER_SANITIZE_STRING );
-				$order_action = empty( $order_action ) ? 'off' : $order_action;
-				$enable       = filter_input( INPUT_POST, 'wcemails_enable', FILTER_SANITIZE_STRING );
-				$enable       = empty( $enable ) ? 'off' : $enable;
+				$title         = filter_input( INPUT_POST, 'wcemails_title', FILTER_SANITIZE_STRING );
+				$description   = filter_input( INPUT_POST, 'wcemails_description', FILTER_SANITIZE_STRING );
+				$subject       = filter_input( INPUT_POST, 'wcemails_subject', FILTER_SANITIZE_STRING );
+				$recipients    = filter_input( INPUT_POST, 'wcemails_recipients', FILTER_SANITIZE_STRING );
+				$heading       = filter_input( INPUT_POST, 'wcemails_heading', FILTER_SANITIZE_STRING );
+				$from_status   = isset( $_POST['wcemails_from_status'] ) ? $_POST['wcemails_from_status'] : '';
+				$to_status     = isset( $_POST['wcemails_to_status'] ) ? $_POST['wcemails_to_status'] : '';
+				$template      = isset( $_POST['wcemails_template'] ) ? $_POST['wcemails_template'] : '';
+				$order_action  = filter_input( INPUT_POST, 'wcemails_order_action', FILTER_SANITIZE_STRING );
+				$order_action  = empty( $order_action ) ? 'off' : $order_action;
+				$enable        = filter_input( INPUT_POST, 'wcemails_enable', FILTER_SANITIZE_STRING );
+				$enable        = empty( $enable ) ? 'off' : $enable;
+				$send_customer = filter_input( INPUT_POST, 'wcemails_send_customer', FILTER_SANITIZE_STRING );
+				$send_customer = empty( $send_customer ) ? 'off' : $send_customer;
 
 				$wcemails_email_details = get_option( 'wcemails_email_details', array() );
 
 				$data = array(
-					'title'        => $title,
-					'description'  => $description,
-					'subject'      => $subject,
-					'recipients'   => $recipients,
-					'heading'      => $heading,
-					'from_status'  => $from_status,
-					'to_status'    => $to_status,
-					'template'     => $template,
-					'order_action' => $order_action,
-					'enable'       => $enable,
+					'title'         => $title,
+					'description'   => $description,
+					'subject'       => $subject,
+					'recipients'    => $recipients,
+					'heading'       => $heading,
+					'from_status'   => $from_status,
+					'to_status'     => $to_status,
+					'template'      => $template,
+					'order_action'  => $order_action,
+					'enable'        => $enable,
+					'send_customer' => $send_customer,
 				);
 
 				if ( isset( $_POST['wcemails_update'] ) ) {
@@ -418,17 +435,18 @@ if ( ! class_exists( 'WCEmails_Admin' ) ) {
 
 					if ( 'on' == $enable ) {
 
-						$title       = isset( $details['title'] ) ? $details['title'] : '';
-						$id          = isset( $details['id'] ) ? $details['id'] : '';
-						$description = isset( $details['description'] ) ? $details['description'] : '';
-						$subject     = isset( $details['subject'] ) ? $details['subject'] : '';
-						$recipients  = isset( $details['recipients'] ) ? $details['recipients'] : '';
-						$heading     = isset( $details['heading'] ) ? $details['heading'] : '';
-						$from_status = isset( $details['from_status'] ) ? $details['from_status'] : array();
-						$to_status   = isset( $details['to_status'] ) ? $details['to_status'] : array();
-						$template    = html_entity_decode( isset( $details['template'] ) ? $details['template'] : '' );
+						$title         = isset( $details['title'] ) ? $details['title'] : '';
+						$id            = isset( $details['id'] ) ? $details['id'] : '';
+						$description   = isset( $details['description'] ) ? $details['description'] : '';
+						$subject       = isset( $details['subject'] ) ? $details['subject'] : '';
+						$recipients    = isset( $details['recipients'] ) ? $details['recipients'] : '';
+						$heading       = isset( $details['heading'] ) ? $details['heading'] : '';
+						$from_status   = isset( $details['from_status'] ) ? $details['from_status'] : array();
+						$to_status     = isset( $details['to_status'] ) ? $details['to_status'] : array();
+						$send_customer = isset( $details['send_customer'] ) ? $details['send_customer'] : array();
+						$template      = stripslashes( html_entity_decode( isset( $details['template'] ) ? $details['template'] : '' ) );
 
-						$wcemails_instance = new WCEmails_Instance( $id, $title, $description, $subject, $recipients, $heading, $from_status, $to_status, $template );
+						$wcemails_instance = new WCEmails_Instance( $id, $title, $description, $subject, $recipients, $heading, $from_status, $to_status, $send_customer, $template );
 
 						$email_classes[ 'WCustom_Emails_'.$id.'_Email' ] = $wcemails_instance;
 
@@ -463,6 +481,13 @@ if ( ! class_exists( 'WCEmails_Admin' ) ) {
 
 			return $emails;
 
+		}
+
+		function wcemails_woocommerce_check() {
+			if ( ! class_exists( 'WooCommerce' ) ) {
+				?><h2><?php _e( 'WooCommerce is not activated!', WCEmails_TEXT_DOMAIN );?></h2><?php
+				die();
+			}
 		}
 
 	}
