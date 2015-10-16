@@ -1,5 +1,5 @@
 === Woo Custom Emails ===
-Contributors: mehulkaklotar, utkarshpatel, dipesh.kakadiya
+Contributors: littlemonks, mehulkaklotar, utkarshpatel, dipesh.kakadiya
 Tags: woo custom emails, woocommerce custom emails, woocommerce, email, order, ecommerce, custom email template
 Requires at least: 4.1
 Tested up to: 4.3
